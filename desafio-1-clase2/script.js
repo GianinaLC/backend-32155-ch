@@ -26,6 +26,7 @@ class Usuario {
 }
 
 let usuario1 = new Usuario("Gianina", "Carranzani");
+
 usuario1.getFullName();
 usuario1.addMascotas("Pipo");
 usuario1.addMascotas("Luz");
