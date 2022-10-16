@@ -1,12 +1,12 @@
-const fs = require("fs");
-const path = require('path')
-/* const filePath = path.resolve(__dirname, "../productos.json");
-console.log("prueba1 " + filePath) */ //me produce error en getbyId con ENOENT ruta
+const fs = require('fs');
+/* const path = require('path')
+const filePath = path.resolve(__dirname, "../productos.json");
+console.log("prueba1 " + filePath) //me produce error en getbyId con ENOENT ruta */
 
 //////////
 /* a la ruta de los productos lo tuve que hacer así por un error de ENOENT que me salía */
 ////////////
-const filePath = "../desafio-4-clase8/src/productos.json";
+const filePath = '../desafio-4-clase8/src/productos.json';
 /* const filePath = "../desafio-4-clase8/src/productos2.json"; */
 
 
@@ -29,63 +29,50 @@ class Contenedor {
 		return JSON.parse(contenido);
 	}
 
+	async saveProducts(productos) {
+		await this.validateExistFile();
+		const data = JSON.stringify(productos, null, 4)
+		await fs.promises.writeFile(this.archivo, data)
+	}
+
 	//save(Object): Number - Recibe un objeto, lo guarda en el archivo, devuelve el id asignado.
 	async save(element) {
 
 		if (!element.title || !element.price || typeof element.title !== 'string' || typeof element.price !== 'number') throw new Error('Datos invalidos');
-		try {
-			const data = this.readFileFn();
 
-			let id = 1;
+		const data = await this.readFileFn();
+		let id = 1;
 
-			if (data.length) {
-				//Si tengo elementos en mi array
-				id = data[data.length - 1].id + 1;
-			}
-
-			const nuevoProducto = {
-				title: element.title,
-				price: element.price,
-				thumbnail: element.thumbnail,
-				id: id,
-			};
-
-			data.push(nuevoProducto);
-
-			try {
-				await fs.promises.writeFile(
-					`${this.archivo}`,
-					JSON.stringify(data, null, 4)
-				);
-				console.log(`Nuevo producto guardado, N° ID: ${nuevoProducto.id}`);
-			} catch {
-				console.log("error cargar nuevo producto");
-			}
-
-			return nuevoProducto.id;
-
-		} catch (err) {
-			console.log("Error en save", err);
-			throw new Error(err);
+		if (data.length) {
+			//Si tengo elementos en mi array
+			id = data[data.length - 1].id + 1;
 		}
+
+		const nuevoProducto = {
+			title: element.title,
+			price: element.price,
+			thumbnail: element.thumbnail,
+			id: id,
+		};
+
+		data.push(nuevoProducto);
+
+		await this.saveProducts(data)
+		console.log(`Nuevo producto guardado, N° ID: ${nuevoProducto.id}`);
+
+		return nuevoProducto.id;
 	}
+
 
 	//getById(Number): Object - Recibe un id y devuelve el objeto con ese id, o null si no está.
 	async getById(id) {
-		try {
-			const contenido = await fs.promises.readFile(
-				`./${this.archivo}`,
-				"utf-8"
-			);
-			const data = JSON.parse(contenido);
-			const idProducto = data.find((producto) => producto.id === id);
-			if (!idProducto) throw new Error("No existe ese producto");
+		const data = await this.readFileFn()
+		const idProducto = data.find((producto) => producto.id === id);
 
-			return idProducto;
-		} catch (err) {
-			console.log("Error en getById", err);
-			throw new Error(err);
-		}
+		if (!idProducto) throw new Error("No existe ese producto");
+
+		return idProducto;
+
 	}
 
 	//getAll(): Object[] - Devuelve un array con los objetos presentes en el archivo.
@@ -95,48 +82,29 @@ class Contenedor {
 			return data
 
 		} catch {
-			console.log("Error al obtener todos los datos");
+			console.log('Error al obtener todos los datos');
 		}
 	}
 
 
 	// deleteById(Number): void - Elimina del archivo el objeto con el id buscado.
 	async deleteById(id) {
-		try {
-			if (!id) {
-				throw new Error("No se pasó ningún ID");
-			}
+		const data = await this.readFileFn()
 
-			const contenido = await fs.promises.readFile(`${this.archivo}`, "utf-8");
-			const data = JSON.parse(contenido);
-			const producto = data.find((producto) => producto.id === id);
+		const productoId = data.findIndex((producto) => producto.id === id);
 
-			if (!producto) {
-				throw new Error("No existe ese producto");
-			} else {
-				data.splice(data.indexOf(producto), 1);
-
-				const nuevaLista = await fs.promises.writeFile(
-					`./${this.archivo}`,
-					JSON.stringify(data, null, 4)
-				);
-
-				console.log(`Producto eliminado, ID: ${producto.id}`);
-
-				return nuevaLista;
-			}
-		} catch (err) {
-			console.log(err);
+		if (productoId < 0) {
+			throw new Error('El producto no existe');
 		}
+
+		data.splice(productoId, 1);
+
+		await this.saveProducts(data)
+
 	}
 
 	async deleteAll() {
-		try {
-			await fs.promises.writeFile(`./${this.archivo}`, "[]");
-			console.log("Archivo eliminado");
-		} catch (err) {
-			console.log(`No se pudo eliminar el archivo`, err);
-		}
+		await this.saveProducts([])
 	}
 }
 

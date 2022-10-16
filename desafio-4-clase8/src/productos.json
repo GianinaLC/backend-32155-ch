@@ -40,5 +40,17 @@
         "price": 2123124,
         "thumbnail": "xx",
         "id": 7
+    },
+    {
+        "title": "gomaeva16",
+        "price": 555,
+        "thumbnail": "xx",
+        "id": 8
+    },
+    {
+        "title": "papelMadera16",
+        "price": 55225,
+        "thumbnail": "xx",
+        "id": 9
     }
 ]
