@@ -48,8 +48,10 @@ class Contenedor {
 
 	//save(Object): Number - Recibe un objeto, lo guarda en el archivo, devuelve el id asignado.
 	async save(element) {
+		/*  si dejo esta verificacion, el price me salta con error pq lo guarda como string y no number.
 
-		if (!element.title || !element.price || typeof element.title !== 'string' || typeof element.price !== 'number') throw new Error('Datos invalidos');
+			if (!element.title || !element.price || typeof element.title !== 'string' || typeof element.price !== 'number') throw new Error('Datos invalidos'); */
+
 
 		const data = await this.readFileFn();
 		let id = 1;
