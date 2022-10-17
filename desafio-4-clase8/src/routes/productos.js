@@ -27,6 +27,7 @@ router.get('/:id', async (req, res, next) => {
     }
 });
 
+
 router.post('/', async (req, res, next) => {
     try {
         const dato = req.body
@@ -40,14 +41,24 @@ router.post('/', async (req, res, next) => {
 });
 
 
+router.put('/:id', async (req, res, next) => {
+    const id = parseInt(req.params.id)
+    const body = req.body
+    try {
+        let data = await ProductsController.updateById(id, body)
 
+        res.json(data);
+
+    } catch (err) {
+        next(err);
+    }
+});
 
 
 
 router.delete('/:id', async (req, res, next) => {
     try {
         const id = parseInt(req.params.id)
-        console.log(id)
         await ProductsController.deleteById(id)
 
         res.json({ message: 'Producto eliminado' })

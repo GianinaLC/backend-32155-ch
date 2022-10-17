@@ -29,10 +29,21 @@ class Contenedor {
 		return JSON.parse(contenido);
 	}
 
-	async saveProducts(productos) {
+	async writeProducts(productos) {
 		await this.validateExistFile();
 		const data = JSON.stringify(productos, null, 4)
 		await fs.promises.writeFile(this.archivo, data)
+	}
+
+	async exists(id) {
+		const data = await this.getAll()
+		const indice = data.findIndex(product => product.id == id)
+		// if(indice < 0){
+		// 	return false;
+		// } else {
+		// 	return true;
+		// }
+		return indice >= 0;
 	}
 
 	//save(Object): Number - Recibe un objeto, lo guarda en el archivo, devuelve el id asignado.
@@ -57,22 +68,10 @@ class Contenedor {
 
 		data.push(nuevoProducto);
 
-		await this.saveProducts(data)
+		await this.writeProducts(data)
 		console.log(`Nuevo producto guardado, N° ID: ${nuevoProducto.id}`);
 
 		return nuevoProducto.id;
-	}
-
-
-	//getById(Number): Object - Recibe un id y devuelve el objeto con ese id, o null si no está.
-	async getById(id) {
-		const data = await this.readFileFn()
-		const idProducto = data.find((producto) => producto.id === id);
-
-		if (!idProducto) throw new Error("No existe ese producto");
-
-		return idProducto;
-
 	}
 
 	//getAll(): Object[] - Devuelve un array con los objetos presentes en el archivo.
@@ -87,6 +86,41 @@ class Contenedor {
 	}
 
 
+	//getById(Number): Object - Recibe un id y devuelve el objeto con ese id, o null si no está.
+	async getById(id) {
+		const data = await this.readFileFn()
+		const idProducto = data.find((producto) => producto.id === id);
+
+		if (!idProducto) throw new Error("No existe ese producto");
+
+		return idProducto;
+
+	}
+
+
+
+	async updateById(id, updateProduct) {
+		const exist = await this.exists(id);
+		if (!exist) throw new Error(`No existe item con ID ${id}`)
+
+		const productos = await this.getAll()
+		const productoId = productos.findIndex(producto => producto.id == id)
+
+		const productoViejo = productos[productoId]
+
+		const productoModificado = {
+			id: productoViejo.id,
+			title: updateProduct.title,
+			price: updateProduct.price
+		}
+
+		productos.splice(productoId, 1, productoModificado)
+
+		await this.writeProducts(productos)
+		return productoModificado
+
+	}
+
 	// deleteById(Number): void - Elimina del archivo el objeto con el id buscado.
 	async deleteById(id) {
 		const data = await this.readFileFn()
@@ -99,12 +133,12 @@ class Contenedor {
 
 		data.splice(productoId, 1);
 
-		await this.saveProducts(data)
+		await this.writeProducts(data)
 
 	}
 
 	async deleteAll() {
-		await this.saveProducts([])
+		await this.writeProducts([])
 	}
 }
 
