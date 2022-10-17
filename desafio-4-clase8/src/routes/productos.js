@@ -30,6 +30,7 @@ router.get('/:id', async (req, res, next) => {
 
 router.post('/', async (req, res, next) => {
     try {
+
         const dato = req.body
         let response = await ProductsController.save(dato)
 

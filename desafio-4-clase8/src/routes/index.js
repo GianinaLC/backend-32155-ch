@@ -1,7 +1,10 @@
-const { Router } = require('express');
+const express = require('express');
 const productosRouter = require('./productos');
+const formularioRouter = require('./formulario')
 
-const router = Router();
+const router = express.Router();
 
 router.use('/productos', productosRouter);
-module.exports = router
+router.use('/formulario', formularioRouter);
+
+module.exports = router;
