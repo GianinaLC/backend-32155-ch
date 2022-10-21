@@ -1,14 +1,6 @@
 const fs = require('fs');
-/* const path = require('path')
+const path = require('path')
 const filePath = path.resolve(__dirname, "../productos.json");
-console.log("prueba1 " + filePath) //me produce error en getbyId con ENOENT ruta */
-
-//////////
-/* a la ruta de los productos lo tuve que hacer así por un error de ENOENT que me salía */
-////////////
-const filePath = '../desafio-4-clase8/src/productos.json';
-/* const filePath = "../desafio-4-clase8/src/productos2.json"; */
-
 
 class Contenedor {
 	constructor(archivo) {
@@ -48,10 +40,9 @@ class Contenedor {
 
 	//save(Object): Number - Recibe un objeto, lo guarda en el archivo, devuelve el id asignado.
 	async save(element) {
-		// si dejo esta verificacion, el price me salta con error pq lo guarda como string y no number.
-
-		/* if (!element.title || !element.price || typeof element.title !== 'string' || typeof element.price !== 'number') throw new Error('Datos invalidos'); */
-
+		//el typeof al precio se lo quito porque en el form ya está el type=number, no me deja ingresar letras,
+		//y de entrada me tira error porque ingresa como string el numero del form, pero luego se parsea y se guarda como number, por eso lo quito
+		if (!element.title || typeof element.title !== 'string' || !element.price) throw new Error('Datos invalidos');
 
 		const data = await this.readFileFn();
 		let id = 1;
@@ -63,7 +54,7 @@ class Contenedor {
 
 		const nuevoProducto = {
 			title: element.title,
-			price: element.price,
+			price: parseInt(element.price),
 			thumbnail: element.thumbnail,
 			id: id,
 		};
