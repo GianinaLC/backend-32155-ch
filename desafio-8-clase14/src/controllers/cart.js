@@ -2,7 +2,8 @@ const fs = require('fs');
 const path = require('path')
 const filePath = path.resolve(__dirname, "../cart.json");
 const moment = require("moment");
-const { v4: uuidv4 } = require('uuid');
+/* const { v4: uuidv4 } = require('uuid'); */
+const { ProductsController } = require('./product')
 
 class Contenedor {
     constructor(archivo) {
@@ -30,7 +31,7 @@ class Contenedor {
     }
 
     async exists(id) {
-        const data = await this.getAll()
+        const data = await this.getAllProdInCart()
         const indice = data.findIndex(product => product.id == id)
         // if(indice < 0){
         // 	return false;
@@ -41,10 +42,10 @@ class Contenedor {
     }
 
 
-    //getAll(): Object[] - Devuelve un array con los objetos presentes en el archivo.
-    async getAllCart() {
+    //getAllProdInCart(): Object[] - Devuelve un array con los objetos presentes en el archivo.
+    async getAllProdInCart() {
         try {
-            const data = this.readFileFn();
+            const data = await this.readFileFn();
             return data
 
         } catch {
@@ -55,7 +56,7 @@ class Contenedor {
     //save(Object): Number - Recibe un objeto, lo guarda en el archivo, devuelve el id asignado.
     async saveCart(element) {
         try {
-            const data = await this.getAll();
+            const data = await this.getAllProdInCart();
             let id = 1;
 
             if (data.length) {
@@ -82,16 +83,12 @@ class Contenedor {
 
     }
 
-    async saveProdInCart(cartSelectedId, prodId) {
+    async addProdInCart(cartId, prodId) {
         try {
-            const cartSelected = this.getById(cartSelectedId);
-            if (cartSelected == null) return;
-
-            const productSelected = products.getById(prodId);
-            if (productSelected == null) return;
-
-            cartSelected.products.push(productSelected);
-            await this.writeProducts(cartSelected);
+            const carts = await this.getAllProdInCart();
+            const index = carts.findIndex((cart) => cart.id === cartId);
+            carts[index].products.push(prodId);
+            await this.writeProducts(carts);
 
             return 'Producto agregado!';
         } catch (err) {
@@ -104,35 +101,12 @@ class Contenedor {
         const data = await this.readFileFn()
         const idProducto = data.find((producto) => producto.id === id);
 
-        if (!idProducto) throw new Error("No carrito buscado no existe!");
+        if (!idProducto) throw new Error("El carrito buscado no existe!");
 
         return idProducto;
 
     }
 
-
-
-    async updateById(id, updateProduct) {
-        const exist = await this.exists(id);
-        if (!exist) throw new Error(`No existe item con ID ${id}`)
-
-        const productos = await this.getAll()
-        const productoId = productos.findIndex(producto => producto.id == id)
-
-        const productoViejo = productos[productoId]
-
-        const productoModificado = {
-            id: productoViejo.id,
-            title: updateProduct.title,
-            price: updateProduct.price
-        }
-
-        productos.splice(productoId, 1, productoModificado)
-
-        await this.writeProducts(productos)
-        return productoModificado
-
-    }
 
     // deleteById(Number): void - Elimina del archivo el objeto con el id buscado.
     async deleteCartById(id) {

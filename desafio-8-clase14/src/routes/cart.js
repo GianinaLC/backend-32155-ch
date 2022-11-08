@@ -1,25 +1,25 @@
 const { Router } = require('express')
-const { CartController } = require('../controllers/cart')
+const { CartController } = require('../controllers/cart');
+const { ProductsController } = require('../controllers/product');
 const { isAdmin } = require('../middlewares/checkAdmin')
 
 const router = Router()
 
 // GET: '/:id/productos' - Me permite listar todos los productos guardados en el carrito
 
-/* router.get('/:id/products', async (req, res, next) => {
+router.get('/:id/products', async (req, res, next) => {
     try {
         const id = parseInt(req.params.id)
-        let response = await CartController.getById(id)
-
-        res.json({ msg: response });
+        const response = await CartController.getCartById(id)
+        const data = await response
+        res.json({ 'Productos del carrito': data.products });
 
     } catch (err) {
         next(err);
     }
-}); */
+});
 
 //POST: '/' - Crea un carrito y devuelve su id.
-
 router.post('/', isAdmin, async (req, res, next) => {
     try {
         const dato = req.body
@@ -32,22 +32,23 @@ router.post('/', isAdmin, async (req, res, next) => {
     }
 });
 
+//le paso solo el id en el body (id del producto cargado en products.json)
 // POST: '/:id/products' - Para incorporar productos al carrito por su id de producto
-
 router.post('/:id/products', isAdmin, async (req, res, next) => {
     try {
-        const idCartSelected = parseInt(req.params.id)
-        /*   if (isNaN(idCartSelected)) return res.status(400).send({ message: 'Ingresa el ID de un carrito listado' }); */
-        const productSaved = await CartController.saveProdInCart(idCartSelected, idProduct);
-        /* if (!productSaved) return res.status(404).send({ message: 'Error' }); */
-
-        res.json({ msg: `Nuevo producto guardado en carrito: ${productSaved}` });
+        const cartId = parseInt(req.params.id);
+        const productId = parseInt(req.body.id);
+        const cartSelected = await CartController.getCartById(cartId);
+        const productToAdd = await ProductsController.getById(productId);
+        await CartController.addProdInCart(cartSelected.id, productToAdd);
+        return res.status(201).json({
+            msg: "producto agregado al carrito con éxito",
+        });
 
     } catch (err) {
         next(err);
     }
 });
-
 
 /* 
 router.put('/:id', async (req, res, next) => {
