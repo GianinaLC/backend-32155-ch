@@ -2,8 +2,7 @@ const fs = require('fs');
 const path = require('path')
 const filePath = path.resolve(__dirname, "../cart.json");
 const moment = require("moment");
-/* const { v4: uuidv4 } = require('uuid'); */
-const { ProductsController } = require('./product')
+
 
 class Contenedor {
     constructor(archivo) {
@@ -98,29 +97,34 @@ class Contenedor {
 
     //getById(Number): Object - Recibe un id y devuelve el objeto con ese id, o null si no está.
     async getCartById(id) {
-        const data = await this.readFileFn()
-        const idProducto = data.find((producto) => producto.id === id);
+        try {
+            const data = await this.readFileFn()
+            const idProducto = data.find((producto) => producto.id === id);
 
-        if (!idProducto) throw new Error("El carrito buscado no existe!");
+            if (!idProducto) throw new Error("El carrito buscado no existe!");
 
-        return idProducto;
+            return idProducto;
 
+        } catch (err) {
+            throw new Error("El carrito no existe", err)
+        }
     }
 
 
     // deleteById(Number): void - Elimina del archivo el objeto con el id buscado.
     async deleteCartById(id) {
-        const data = await this.readFileFn()
+        try {
+            const carts = await this.getAllProdInCart();
+            const index = carts.findIndex((cart) => cart.id === id);
 
-        const cartId = data.findIndex((producto) => producto.id === id);
+            if (index < 0) throw ("El carrito a eliminar no existe!");
 
-        if (cartId < 0) {
-            throw new Error('El carrito no existe');
+            carts.splice(index, 1);
+            await this.writeProducts(carts);
+
+        } catch (err) {
+            throw new Error(err)
         }
-
-        data.splice(cartId, 1);
-
-        await this.writeProducts(data)
 
     }
 
@@ -130,44 +134,26 @@ class Contenedor {
 
     async deleteProduct(cartId, prodId) {
         try {
-            const cartSelected = await this.getById(cartId)
-            const productToDelete = await cartSelected.products.findIndex(product => product.id === prodId);
+            const carts = await this.getAllProdInCart();
+            const cartIndex = carts.findIndex((cart) => cart.id === cartId);
 
-            if (productToDelete == -1) return;
+            const productIndex = carts[cartIndex].products.findIndex(
+                (product) => product.id === prodId
+            );
 
-            cartSelected.products.splice(productToDelete, 1);
+            if (productIndex < 0) {
+                throw "El producto buscado no existe dentro del carrito!";
+            }
 
-            await this.writeProducts(cartSelected)
+            carts[cartIndex].products.splice(productIndex, 1);
 
-            return 'Producto eliminado!';
-            /* const prodFiltrado = arrayProd.filter(item => {
-                if (prodId != item.id) {
-                    return item
-                } else {
-                    return null
-                }
-            })
+            await this.writeProducts(carts);
 
-            const newCart = { ...data, productos: prodFiltrado }
-            console.log(newCart)
-
-            const asd = await this.deletByID(cartId);
-            asd.push(newCart);
-
-            const dataFinal = asd.sort((a, b) => {
-                return a.id - b.id;
-            });
-
-            const nuevoArray = await this.writeProducts(dataFinal)
-
-            return nuevoArray; */
-
-        } catch (error) {
-            return console.log(error);
+        } catch (err) {
+            throw new Error(err);
         }
     }
 }
-
 
 
 const instanciaCartApi = new Contenedor(filePath)
