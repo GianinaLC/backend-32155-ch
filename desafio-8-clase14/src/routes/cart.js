@@ -5,20 +5,6 @@ const { isAdmin } = require('../middlewares/checkAdmin')
 
 const router = Router()
 
-// GET: '/:id/productos' - Me permite listar todos los productos guardados en el carrito
-
-router.get('/:id/products', async (req, res, next) => {
-    try {
-        const id = parseInt(req.params.id)
-        const response = await CartController.getCartById(id)
-        const data = await response
-        res.json({ 'Productos del carrito': data.products });
-
-    } catch (err) {
-        next(err);
-    }
-});
-
 //POST: '/' - Crea un carrito y devuelve su id.
 router.post('/', isAdmin, async (req, res, next) => {
     try {
@@ -42,7 +28,7 @@ router.post('/:id/products', isAdmin, async (req, res, next) => {
         const productToAdd = await ProductsController.getById(productId);
         await CartController.addProdInCart(cartSelected.id, productToAdd);
         return res.status(201).json({
-            msg: "producto agregado al carrito con éxito",
+            msg: "Producto agregado al carrito con éxito",
         });
 
     } catch (err) {
@@ -50,33 +36,56 @@ router.post('/:id/products', isAdmin, async (req, res, next) => {
     }
 });
 
-/* 
-router.put('/:id', async (req, res, next) => {
-    const id = parseInt(req.params.id)
-    const body = req.body
-    try {
-        let data = await CartController.updateById(id, body)
+// GET: '/:id/productos' - Me permite listar todos los productos guardados en el carrito
 
-        res.json(data);
+router.get('/:id/products', async (req, res, next) => {
+    try {
+        const id = parseInt(req.params.id)
+        const response = await CartController.getCartById(id)
+        const data = await response
+        res.json({ 'Productos del carrito': data.products });
 
     } catch (err) {
         next(err);
     }
 });
 
-
-
+//DELETE: '/:id' - Vacía un carrito y lo elimina.
 router.delete('/:id', async (req, res, next) => {
     try {
         const id = parseInt(req.params.id)
-        await CartController.deleteById(id)
+        await CartController.deleteCartById(id)
 
-        res.json({ message: 'Producto eliminado' })
+        return res.status(200).json({
+            msg: "Carrito eliminado con éxito",
+        });
 
     } catch (err) {
         next(err)
     }
 
-}); */
+});
+
+//DELETE: '/:id/productos/:id_prod' - Eliminar un producto del carrito por su id de carrito y de producto
+router.delete('/:id/products/:id_prod', async (req, res, next) => {
+    try {
+        const cartId = parseInt(req.params.id);
+        const prodId = parseInt(req.params.id_prod);
+        //Esto solo sirve para saber si existe el carrito solicitado o no
+        const cart = await CartController.getCartById(cartId);
+        await CartController.deleteProduct(cartId, prodId);
+
+        if (!cart) throw "El carrito no existe"
+
+        return res.status(200).json({
+            msg: "Producto eliminado del carrito con éxito",
+        });
+
+    } catch (err) {
+        next(err)
+    }
+
+});
+
 
 module.exports = router

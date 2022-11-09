@@ -108,9 +108,13 @@ class Contenedor {
 		const productoViejo = productos[productoId]
 
 		const productoModificado = {
-			id: productoViejo.id,
 			title: updateProduct.title,
-			price: updateProduct.price
+			price: parseInt(updateProduct.price),
+			thumbnail: updateProduct.thumbnail,
+			timestamp: moment().format("DD-MM-YYYY HH:MM:SS"),
+			codigo: uuidv4(),
+			stock: parseInt(updateProduct.stock),
+			id: productoViejo.id,
 		}
 
 		productos.splice(productoId, 1, productoModificado)
@@ -140,26 +144,6 @@ class Contenedor {
 		await this.writeProducts([])
 	}
 }
-
-/* const data1 = new Contenedor(filePath); */
-
-//obtener producto segun el ID
-/* data1.getById(1).then((val) => console.log(val)); */
-
-//borrar archivo
-/* data1.deleteAll(); */
-
-//save
-/* data1.save({ title: "lapicera", price: 222, thumbnail: "xx" });
- */
-
-
-//getAll
-/* data1.getAll().then((val) => console.log(val)); */
-
-//deleteById
-/* data1.deleteById(1); */
-
 
 const instanciaProductsApi = new Contenedor(filePath)
 
